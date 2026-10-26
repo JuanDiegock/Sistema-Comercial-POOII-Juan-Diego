@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de usuarios</title>
     <link rel="stylesheet" href="css/estilos.css">
+
     <style>
         .users-page {
             width: min(1100px, 94%);
@@ -40,8 +42,7 @@
             gap: 16px;
         }
 
-        .users-form input, .users-form select,
-        .users-search {
+        .users-form input, .users-form select, .users-search {
             width: 100%;
             min-width: 0;
             padding: 12px;
@@ -49,9 +50,11 @@
             border-radius: 8px;
             background: #0b1220;
             color: #f8fafc;
+            box-sizing: border-box;
         }
 
         .users-form label {
+            display: block;
             margin-bottom: 7px;
         }
 
@@ -109,10 +112,6 @@
             font-size: 13px;
         }
 
-        .users-status {
-            color: #86efac;
-        }
-
         .users-message {
             min-height: 20px;
             margin-bottom: 15px;
@@ -139,109 +138,120 @@
         }
     </style>
 </head>
+
 <body>
-    <main class="users-page">
-        <header class="users-header">
-            <div>
-                <a class="users-back" href="panel.html">← Volver al panel</a>
-                <h1 style="text-align:left; margin-top:18px">Gestión de usuarios</h1>
-                <p>Administra los usuarios y sus roles.</p>
+<main class="users-page">
+
+    <header class="users-header">
+        <div>
+            <a class="users-back" href="panel.html">← Volver al panel</a>
+            <h1 style="text-align:left; margin-top:18px">Gestión de usuarios</h1>
+            <p>Administra los usuarios y sus roles.</p>
+        </div>
+
+        <button class="users-btn secondary" id="cerrarSesion" type="button">
+            Cerrar sesión
+        </button>
+    </header>
+
+    <section class="users-card">
+        <h2 id="formTitulo">Registrar usuario</h2>
+        <p class="users-subtitle">Completa los datos del usuario.</p>
+
+        <form id="usuarioForm" class="users-form" style="margin-top:20px">
+            <input type="hidden" id="usuarioId">
+
+            <div class="users-field">
+                <label for="nombre">Nombre completo</label>
+                <input id="nombre" required maxlength="100"
+                       placeholder="Ej. Juan Pérez">
             </div>
-            <button class="users-btn secondary" id="cerrarSesion">
-                Cerrar sesión
-            </button>
-        </header>
 
-        <section class="users-card">
-            <h2 id="formTitulo">Registrar usuario</h2>
-            <p class="users-subtitle">Completa los datos del usuario.</p>
+            <div class="users-field">
+                <label for="nombreUsuario">Nombre de usuario</label>
+                <input id="nombreUsuario" required maxlength="40"
+                       autocomplete="off" placeholder="Ej. jperez">
+            </div>
 
-            <form id="usuarioForm" class="users-form" style="margin-top:20px">
-                <input type="hidden" id="usuarioId">
+            <div class="users-field">
+                <label for="correo">Correo electrónico</label>
+                <input id="correo" type="email" required maxlength="120"
+                       placeholder="usuario@empresa.com">
+            </div>
 
-                <div class="users-field">
-                    <label for="nombre">Nombre completo</label>
-                    <input id="nombre" required maxlength="100"
-                           placeholder="Ej. Juan Pérez">
-                </div>
-
-                <div class="users-field">
-                    <label for="nombreUsuario">Nombre de usuario</label>
-                    <input id="nombreUsuario" required maxlength="40"
-                           autocomplete="off" placeholder="Ej. jperez">
-                </div>
-
-                <div class="users-field">
-                    <label for="correo">Correo electrónico</label>
-                    <input id="correo" type="email" required maxlength="120"
-                           placeholder="usuario@empresa.com">
-                </div>
-                <div class="users-field">
+            <div class="users-field">
                 <label for="password">Contraseña</label>
                 <input id="password" type="password" required minlength="8"
-                    autocomplete="new-password"
-                    placeholder="Mínimo 8 caracteres">
-                </div>
-
-                <div class="users-field">
-                    <label for="rol">Rol</label>
-                    <select id="rol" required>
-                        <option value="Administrador">Administrador</option>
-                        <option value="Empleado">Empleado</option>
-                        <option value="Supervisor">Supervisor</option>
-                    </select>
-                </div>
-
-                <div class="users-buttons">
-                    <button class="users-btn" type="submit" id="guardarBtn">
-                        Registrar usuario
-                    </button>
-                    <button class="users-btn secondary" type="button" id="cancelarBtn">
-                        Limpiar
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <section class="users-card">
-            <div class="users-actions">
-                <div>
-                    <h2>Usuarios registrados</h2>
-                    <p class="users-subtitle">Datos locales de demostración.</p>
-                </div>
-                <input class="users-search" id="buscar"
-                       placeholder="Buscar usuario..." style="max-width:280px">
+                       autocomplete="new-password"
+                       placeholder="Mínimo 8 caracteres">
             </div>
 
-            <p class="users-message" id="mensaje" role="status"
-               aria-live="polite"></p>
-
-            <div class="users-table-wrap">
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Usuario</th>
-                            <th>Correo</th>
-                            <th>Rol</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaUsuarios"></tbody>
-                </table>
+            <div class="users-field">
+                <label for="rol">Rol</label>
+                <select id="rol" required>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Empleado">Empleado</option>
+                    <option value="Supervisor">Supervisor</option>
+                </select>
             </div>
-        </section>
-    </main>
 
-  <script>  
-const API_URL = "http://localhost:8080/api/usuarios";
+            <div class="users-buttons">
+                <button class="users-btn" type="submit" id="guardarBtn">
+                    Registrar usuario
+                </button>
+                <button class="users-btn secondary" type="button" id="cancelarBtn">
+                    Limpiar
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="users-card">
+        <div class="users-actions">
+            <div>
+                <h2>Usuarios registrados</h2>
+                <p class="users-subtitle">
+                    Datos locales de demostración de este navegador.
+                </p>
+            </div>
+
+            <input class="users-search" id="buscar"
+                   placeholder="Buscar usuario..." style="max-width:280px">
+        </div>
+
+        <p class="users-message" id="mensaje" role="status"
+           aria-live="polite"></p>
+
+        <div class="users-table-wrap">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios"></tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script>
+const CLAVE_USUARIOS = "sistema_comercial_usuarios_demo";
 
 const form = document.getElementById("usuarioForm");
 const tabla = document.getElementById("tablaUsuarios");
 const mensaje = document.getElementById("mensaje");
 const buscar = document.getElementById("buscar");
 const password = document.getElementById("password");
+const usuarioId = document.getElementById("usuarioId");
+const guardarBtn = document.getElementById("guardarBtn");
+const formTitulo = document.getElementById("formTitulo");
 
 let usuarios = [];
 
@@ -249,46 +259,57 @@ function mostrarMensaje(texto) {
     mensaje.textContent = texto;
 }
 
-
-function limpiarFormulario() {
-    form.reset();
-    document.getElementById("usuarioId").value = "";
-    document.getElementById("formTitulo").textContent = "Registrar usuario";
-    document.getElementById("guardarBtn").textContent = "Registrar usuario";
-    password.required = true;
-}
-
-
-async function cargarUsuarios() {
+function guardarDatos() {
     try {
-        const respuesta = await fetch(API_URL);
-
-        if (!respuesta.ok) {
-            throw new Error("Error al consultar usuarios.");
-        }
-
-        usuarios = await respuesta.json();
-        renderizarUsuarios(buscar.value);
+        localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios));
+        return true;
     } catch (error) {
-        mostrarMensaje("No se pudo conectar con el backend: " + error.message);
+        mostrarMensaje("No se pudieron guardar los datos en este navegador.");
+        return false;
     }
 }
 
+function cargarDatos() {
+    try {
+        const datos = localStorage.getItem(CLAVE_USUARIOS);
+        usuarios = datos ? JSON.parse(datos) : [];
+
+        if (!Array.isArray(usuarios)) usuarios = [];
+    } catch (error) {
+        usuarios = [];
+        mostrarMensaje("No se pudieron leer los datos guardados.");
+    }
+
+    renderizarUsuarios(buscar.value);
+}
+
+function limpiarFormulario() {
+    form.reset();
+    usuarioId.value = "";
+    formTitulo.textContent = "Registrar usuario";
+    guardarBtn.textContent = "Registrar usuario";
+    password.required = true;
+}
 
 function renderizarUsuarios(filtro = "") {
     tabla.replaceChildren();
 
+    const texto = filtro.trim().toLowerCase();
+
     const coincidencias = usuarios.filter(u =>
-        `${u.nombre || u.nombreCompleto || ""} ${u.usuario || ""} ${u.correo || ""} ${u.rol || ""}`
+        `${u.nombre} ${u.usuario} ${u.correo} ${u.rol}`
             .toLowerCase()
-            .includes(filtro.toLowerCase())
+            .includes(texto)
     );
 
     if (coincidencias.length === 0) {
         const fila = document.createElement("tr");
         const celda = document.createElement("td");
         celda.colSpan = 6;
-        celda.textContent = "No hay usuarios registrados en la base de datos.";
+        celda.textContent = usuarios.length
+            ? "No se encontraron usuarios."
+            : "No hay usuarios registrados.";
+
         fila.appendChild(celda);
         tabla.appendChild(fila);
         return;
@@ -297,13 +318,7 @@ function renderizarUsuarios(filtro = "") {
     coincidencias.forEach(u => {
         const fila = document.createElement("tr");
 
-        [
-            u.id,
-            u.nombre || u.nombreCompleto || "",
-            u.usuario,
-            u.correo || "",
-            u.rol || ""
-        ].forEach(valor => {
+        [u.id, u.nombre, u.usuario, u.correo, u.rol].forEach(valor => {
             const celda = document.createElement("td");
             celda.textContent = valor ?? "";
             fila.appendChild(celda);
@@ -311,136 +326,127 @@ function renderizarUsuarios(filtro = "") {
 
         const acciones = document.createElement("td");
 
-        const botonEditar = document.createElement("button");
-        botonEditar.type = "button";
-        botonEditar.className = "users-btn secondary";
-        botonEditar.textContent = "Editar";
-        botonEditar.addEventListener("click", () => editarUsuario(u.id));
+        const editar = document.createElement("button");
+        editar.type = "button";
+        editar.className = "users-btn secondary";
+        editar.textContent = "Editar";
+        editar.addEventListener("click", () => editarUsuario(u.id));
 
-        const botonEliminar = document.createElement("button");
-        botonEliminar.type = "button";
-        botonEliminar.className = "users-btn danger";
-        botonEliminar.textContent = "Eliminar";
-        botonEliminar.style.marginLeft = "8px";
-        botonEliminar.addEventListener("click", () => eliminarUsuario(u.id));
+        const eliminar = document.createElement("button");
+        eliminar.type = "button";
+        eliminar.className = "users-btn danger";
+        eliminar.textContent = "Eliminar";
+        eliminar.style.marginLeft = "8px";
+        eliminar.addEventListener("click", () => eliminarUsuario(u.id));
 
-        acciones.append(botonEditar, botonEliminar);
+        acciones.append(editar, eliminar);
         fila.appendChild(acciones);
         tabla.appendChild(fila);
     });
 }
 
-async function editarUsuario(id) {
-    const usuario = usuarios.find(u => u.id === id);
+function editarUsuario(id) {
+    const u = usuarios.find(item => item.id === id);
+    if (!u) return;
 
-    if (!usuario) {
-        mostrarMensaje("No se encontró el usuario.");
-        return;
-    }
+    usuarioId.value = u.id;
+    document.getElementById("nombre").value = u.nombre;
+    document.getElementById("nombreUsuario").value = u.usuario;
+    document.getElementById("correo").value = u.correo;
+    document.getElementById("rol").value = u.rol;
 
-    document.getElementById("usuarioId").value = usuario.id;
-    document.getElementById("nombre").value =
-        usuario.nombre || usuario.nombreCompleto || "";
-    document.getElementById("nombreUsuario").value = usuario.usuario || "";
-    document.getElementById("correo").value = usuario.correo || "";
-    document.getElementById("rol").value = usuario.rol || "EMPLEADO";
-
-    password.required = false;
     password.value = "";
+    password.required = false;
 
-    document.getElementById("formTitulo").textContent = "Editar usuario";
-    document.getElementById("guardarBtn").textContent = "Guardar cambios";
-
+    formTitulo.textContent = "Editar usuario";
+    guardarBtn.textContent = "Guardar cambios";
     mostrarMensaje("Modifica los datos y pulsa Guardar cambios.");
     form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-async function eliminarUsuario(id) {
-    const confirmado = confirm("¿Seguro que deseas eliminar este usuario?");
+function eliminarUsuario(id) {
+    if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
 
-    if (!confirmado) return;
+    const anteriores = usuarios;
+    usuarios = usuarios.filter(u => u.id !== id);
 
-    try {
-        const respuesta = await fetch(`${API_URL}/${id}`, {
-            method: "DELETE"
-        });
-
-        if (!respuesta.ok) {
-            const detalle = await respuesta.text();
-            throw new Error(detalle || `Error HTTP ${respuesta.status}`);
-        }
-
-        mostrarMensaje("Usuario eliminado correctamente.");
-        await cargarUsuarios();
-    } catch (error) {
-        mostrarMensaje("No se pudo eliminar: " + error.message);
+    if (!guardarDatos()) {
+        usuarios = anteriores;
+        return;
     }
+
+    renderizarUsuarios(buscar.value);
+    mostrarMensaje("Usuario eliminado correctamente.");
 }
 
-
-
-form.addEventListener("submit", async event => {
+form.addEventListener("submit", event => {
     event.preventDefault();
 
-    const id = document.getElementById("usuarioId").value;
+    const id = usuarioId.value;
+    const nombre = document.getElementById("nombre").value.trim();
+    const usuario = document.getElementById("nombreUsuario").value.trim();
+    const correo = document.getElementById("correo").value.trim();
+    const rol = document.getElementById("rol").value;
 
-    const datos = {
-        nombreCompleto: document.getElementById("nombre").value.trim(),
-        usuario: document.getElementById("nombreUsuario").value.trim(),
-        correo: document.getElementById("correo").value.trim(),
-        rol: document.getElementById("rol").value.toUpperCase()
-    };
-
-    if (!id || password.value.trim()) {
-        if (password.value.length < 8) {
-            mostrarMensaje("La contraseña debe tener al menos 8 caracteres.");
-            return;
-        }
-        datos.passwordHash = password.value;
+    if (!id && password.value.length < 8) {
+        mostrarMensaje("La contraseña debe tener al menos 8 caracteres.");
+        return;
     }
 
-    try {
-        const respuesta = await fetch(
-            id ? `${API_URL}/${id}` : API_URL,
-            {
-                method: id ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos)
-            }
+    const duplicado = usuarios.some(u =>
+        u.id !== id &&
+        (u.usuario.toLowerCase() === usuario.toLowerCase() ||
+         u.correo.toLowerCase() === correo.toLowerCase())
+    );
+
+    if (duplicado) {
+        mostrarMensaje("Ese nombre de usuario o correo ya está registrado.");
+        return;
+    }
+
+    const anteriores = usuarios.map(u => ({ ...u }));
+
+    if (id) {
+        usuarios = usuarios.map(u =>
+            u.id === id ? { ...u, nombre, usuario, correo, rol } : u
         );
-
-        if (!respuesta.ok) {
-            const detalle = await respuesta.text();
-            throw new Error(detalle || `Error HTTP ${respuesta.status}`);
-        }
-
-        mostrarMensaje(id
-            ? "Usuario actualizado correctamente."
-            : "Usuario registrado correctamente.");
-
-        limpiarFormulario();
-        password.required = true;
-        await cargarUsuarios();
-
-    } catch (error) {
-        mostrarMensaje("No se pudo guardar: " + error.message);
+    } else {
+        usuarios.push({
+            id: String(Date.now()),
+            nombre,
+            usuario,
+            correo,
+            rol
+        });
     }
+
+    if (!guardarDatos()) {
+        usuarios = anteriores;
+        return;
+    }
+
+    limpiarFormulario();
+    renderizarUsuarios(buscar.value);
+    mostrarMensaje(
+        id ? "Usuario actualizado correctamente."
+           : "Usuario registrado correctamente."
+    );
 });
 
+document.getElementById("cancelarBtn").addEventListener("click", () => {
+    limpiarFormulario();
+    mostrarMensaje("");
+});
 
-document.getElementById("cancelarBtn")
-    .addEventListener("click", limpiarFormulario);
+document.getElementById("cerrarSesion").addEventListener("click", () => {
+    window.location.href = "index.html";
+});
 
 buscar.addEventListener("input", () => {
     renderizarUsuarios(buscar.value);
 });
 
-document.getElementById("cerrarSesion")
-    .addEventListener("click", () => {
-        window.location.href = "index.html";
-    });
-
-cargarUsuarios();
+cargarDatos();
 </script>
 </body>
 </html>
