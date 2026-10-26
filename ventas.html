@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de ventas</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        .modulo {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .seccion {
+            background: white;
+            color: #222;
+            padding: 22px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        input, select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 7px;
+            margin: 4px;
+        }
+
+        .acciones { margin-top: 15px; }
+        .tabla-contenedor { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            text-align: left;
+            padding: 11px;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background: #eee; }
+        .total { font-size: 1.3rem; font-weight: bold; }
+
+        @media (max-width: 650px) {
+            .campos { grid-template-columns: 1fr; }
+            .modulo { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+<main class="modulo">
+    <h1>Gestión de ventas</h1>
+    <p>Registro de ventas y detalle de productos.</p>
+
+    <section class="seccion">
+        <h2>Nueva venta</h2>
+
+        <div class="campos">
+            <div>
+                <label for="cliente">Nombre del cliente</label>
+                <input id="cliente" placeholder="Nombre del cliente" required>
+            </div>
+            <div>
+                <label for="producto">Producto</label>
+                <select id="producto">
+                    <option value="">Seleccionar producto</option>
+                </select>
+            </div>
+            <div>
+                <label for="cantidad">Cantidad</label>
+                <input id="cantidad" type="number" min="1" step="1" value="1">
+            </div>
+        </div>
+
+        <div class="acciones">
+            <button type="button" id="btnAgregar">Agregar producto</button>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio unitario</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="detalleVenta"></tbody>
+            </table>
+        </div>
+
+        <p class="total">Total: S/ <span id="total">0.00</span></p>
+
+        <div class="acciones">
+            <button type="button" id="btnRegistrar">Registrar venta</button>
+            <button type="button" id="btnLimpiar">Limpiar venta</button>
+            <button type="button" onclick="location.href='panel.html'">
+                Volver al menú
+            </button>
+        </div>
+    </section>
+
+    <section class="seccion">
+        <h2>Ventas registradas</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="listaVentas"></tbody>
+            </table>
+        </div>
+        <p id="sinVentas">Todavía no hay ventas registradas.</p>
+    </section>
+</main>
+
+<script>
+    const CLAVE_PRODUCTOS = "sip_productos_demo";
+    const CLAVE_VENTAS = "sip_ventas_demo";
+
+    let productos = JSON.parse(localStorage.getItem(CLAVE_PRODUCTOS) || "[]");
+    let ventas = JSON.parse(localStorage.getItem(CLAVE_VENTAS) || "[]");
+    let detalle = [];
+
+    const selector = document.getElementById("producto");
+
+  
+function cargarProductos() {
+    // Leer los productos registrados en Productos e inventario
+    productos = JSON.parse(
+        localStorage.getItem(CLAVE_PRODUCTOS) || "[]"
+    );
+
+    selector.innerHTML = "";
+
+    const opcionInicial = document.createElement("option");
+    opcionInicial.value = "";
+    opcionInicial.textContent = productos.length
+        ? "Seleccionar producto"
+        : "No hay productos registrados en inventario";
+
+    selector.appendChild(opcionInicial);
+
+    productos
+        .filter(p => Number(p.stock) > 0)
+        .forEach(p => {
+            const opcion = document.createElement("option");
+            opcion.value = p.id;
+            opcion.textContent =
+                `${p.codigo} - ${p.nombre} | S/ ${Number(p.precio).toFixed(2)} | Stock: ${p.stock}`;
+            selector.appendChild(opcion);
+        });
+
+    if (productos.length > 0 &&
+        !productos.some(p => Number(p.stock) > 0)) {
+        opcionInicial.textContent =
+            "No hay productos con stock disponible";
+    }
+}
+
+
+    function mostrarDetalle() {
+        const cuerpo = document.getElementById("detalleVenta");
+        cuerpo.innerHTML = "";
+        let total = 0;
+
+        detalle.forEach((item, indice) => {
+            const subtotal = item.precio * item.cantidad;
+            total += subtotal;
+
+            const fila = document.createElement("tr");
+            [
+                item.nombre,
+                "S/ " + item.precio.toFixed(2),
+                item.cantidad,
+                "S/ " + subtotal.toFixed(2)
+            ].forEach(valor => {
+                const celda = document.createElement("td");
+                celda.textContent = valor;
+                fila.appendChild(celda);
+            });
+
+            const celdaAccion = document.createElement("td");
+            const boton = document.createElement("button");
+            boton.textContent = "Quitar";
+            boton.addEventListener("click", () => {
+                detalle.splice(indice, 1);
+                mostrarDetalle();
+            });
+            celdaAccion.appendChild(boton);
+            fila.appendChild(celdaAccion);
+            cuerpo.appendChild(fila);
+        });
+
+        document.getElementById("total").textContent = total.toFixed(2);
+    }
+
+    document.getElementById("btnAgregar").addEventListener("click", () => {
+        const id = Number(selector.value);
+        const cantidad = Number(document.getElementById("cantidad").value);
+        const producto = productos.find(p => p.id === id);
+
+        if (!producto) {
+            alert("Primero selecciona un producto.");
+            return;
+        }
+
+        if (!Number.isInteger(cantidad) || cantidad < 1) {
+            alert("Ingresa una cantidad válida.");
+            return;
+        }
+
+        const existente = detalle.find(item => item.id === id);
+        const cantidadActual = existente ? existente.cantidad : 0;
+
+        if (cantidadActual + cantidad > producto.stock) {
+            alert("No hay stock suficiente para esa cantidad.");
+            return;
+        }
+
+        if (existente) {
+            existente.cantidad += cantidad;
+        } else {
+            detalle.push({
+                id: producto.id,
+                nombre: producto.nombre,
+                precio: Number(producto.precio),
+                cantidad
+            });
+        }
+
+        mostrarDetalle();
+    });
+
+    document.getElementById("btnRegistrar").addEventListener("click", () => {
+        const cliente = document.getElementById("cliente").value.trim();
+
+        if (!cliente) {
+            alert("Ingresa el nombre del cliente.");
+            return;
+        }
+
+        if (detalle.length === 0) {
+            alert("Agrega al menos un producto.");
+            return;
+        }
+
+        // Comprobar el stock antes de registrar la venta.
+        productos = JSON.parse(localStorage.getItem(CLAVE_PRODUCTOS) || "[]");
+
+        for (const item of detalle) {
+            const producto = productos.find(p => p.id === item.id);
+
+            if (!producto || producto.stock < item.cantidad) {
+                alert("El stock cambió o no es suficiente. Revisa los productos.");
+                cargarProductos();
+                return;
+            }
+        }
+
+        const total = detalle.reduce(
+            (suma, item) => suma + item.precio * item.cantidad, 0
+        );
+
+        // Descontar el stock de los productos vendidos.
+        detalle.forEach(item => {
+            const producto = productos.find(p => p.id === item.id);
+            producto.stock -= item.cantidad;
+        });
+
+        const venta = {
+            numero: ventas.length + 1,
+            fecha: new Date().toLocaleString("es-PE"),
+            cliente,
+            detalle: detalle.map(item => ({ ...item })),
+            total: Number(total.toFixed(2))
+        };
+
+        ventas.push(venta);
+
+        localStorage.setItem(CLAVE_PRODUCTOS, JSON.stringify(productos));
+        localStorage.setItem(CLAVE_VENTAS, JSON.stringify(ventas));
+
+        alert("Venta registrada correctamente.");
+
+        detalle = [];
+        document.getElementById("cliente").value = "";
+        document.getElementById("cantidad").value = "1";
+
+        mostrarDetalle();
+        cargarProductos();
+        mostrarVentas();
+    });
+
+    document.getElementById("btnLimpiar").addEventListener("click", () => {
+        detalle = [];
+        document.getElementById("cliente").value = "";
+        document.getElementById("cantidad").value = "1";
+        mostrarDetalle();
+    });
+
+
+function mostrarVentas() {
+    const cuerpo = document.getElementById("listaVentas");
+    cuerpo.innerHTML = "";
+
+    ventas.forEach(venta => {
+        const fila = document.createElement("tr");
+
+        [
+            venta.numero,
+            venta.fecha,
+            venta.cliente,
+            "S/ " + Number(venta.total).toFixed(2)
+        ].forEach(valor => {
+            const celda = document.createElement("td");
+            celda.textContent = valor;
+            fila.appendChild(celda);
+        });
+
+        const celdaAccion = document.createElement("td");
+        const boton = document.createElement("button");
+        boton.textContent = "Eliminar";
+        boton.style.backgroundColor = "#dc2626";
+        boton.style.color = "#ffffff";
+
+        boton.addEventListener("click", () => {
+            if (!confirm("¿Deseas eliminar esta venta?")) return;
+
+            ventas = ventas.filter(v => v.numero !== venta.numero);
+
+            localStorage.setItem(
+                CLAVE_VENTAS,
+                JSON.stringify(ventas)
+            );
+
+            mostrarVentas();
+        });
+
+        celdaAccion.appendChild(boton);
+        fila.appendChild(celdaAccion);
+        cuerpo.appendChild(fila);
+    });
+
+    document.getElementById("sinVentas").style.display =
+        ventas.length ? "none" : "block";
+}
+
+
+    cargarProductos();
+    mostrarDetalle();
+    mostrarVentas();
+</script>
+</body>
+</html>
+```

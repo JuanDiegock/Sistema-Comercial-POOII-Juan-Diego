@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración del sistema</title>
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <style>
+        .configuracion {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .seccion {
+            background: white;
+            color: #111827;
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #111827;
+        }
+
+        input, select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: white;
+            color: #111827;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            background: #4f46e5;
+            color: white;
+            cursor: pointer;
+            margin: 15px 8px 0 0;
+        }
+
+        @media (max-width: 650px) {
+            .campos {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="configuracion">
+    <h1>Configuración</h1>
+    <p>Configuración general del sistema comercial.</p>
+
+    <section class="seccion">
+        <h2>Datos de la empresa</h2>
+
+        <form id="formConfiguracion">
+            <div class="campos">
+                <div>
+                    <label for="empresa">Nombre de la empresa</label>
+                    <input id="empresa" required>
+                </div>
+
+                <div>
+                    <label for="ruc">RUC</label>
+                    <input id="ruc" maxlength="11" pattern="[0-9]{11}"
+                           title="Ingresa un RUC de 11 dígitos" required>
+                </div>
+
+                <div>
+                    <label for="correo">Correo de contacto</label>
+                    <input id="correo" type="email">
+                </div>
+
+                <div>
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" type="tel">
+                </div>
+
+                <div>
+                    <label for="moneda">Moneda</label>
+                    <select id="moneda">
+                        <option value="PEN">Sol peruano (S/)</option>
+                        <option value="USD">Dólar estadounidense ($)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="notificaciones">Notificaciones</label>
+                    <select id="notificaciones">
+                        <option value="activadas">Activadas</option>
+                        <option value="desactivadas">Desactivadas</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit">Guardar configuración</button>
+            <button type="button"
+                    onclick="location.href='panel.html'">
+                Volver al menú
+            </button>
+
+            <p id="mensaje"></p>
+        </form>
+    </section>
+</main>
+
+<script>
+    const CLAVE_CONFIGURACION = "sip_configuracion_demo";
+    const formulario = document.getElementById("formConfiguracion");
+
+    function cargarConfiguracion() {
+        const datos = JSON.parse(
+            localStorage.getItem(CLAVE_CONFIGURACION) || "{}"
+        );
+
+        Object.keys(datos).forEach(clave => {
+            const campo = document.getElementById(clave);
+            if (campo) campo.value = datos[clave];
+        });
+    }
+
+    formulario.addEventListener("submit", function(evento) {
+        evento.preventDefault();
+
+        const datos = {
+            empresa: document.getElementById("empresa").value.trim(),
+            ruc: document.getElementById("ruc").value.trim(),
+            correo: document.getElementById("correo").value.trim(),
+            telefono: document.getElementById("telefono").value.trim(),
+            moneda: document.getElementById("moneda").value,
+            notificaciones: document.getElementById("notificaciones").value
+        };
+
+        localStorage.setItem(
+            CLAVE_CONFIGURACION,
+            JSON.stringify(datos)
+        );
+
+        document.getElementById("mensaje").textContent =
+            "Configuración guardada correctamente.";
+    });
+
+    cargarConfiguracion();
+</script>
+</body>
+</html>

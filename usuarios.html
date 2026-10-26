@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de usuarios</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        .users-page {
+            width: min(1100px, 94%);
+            margin: 40px auto;
+            color: #f8fafc;
+        }
+
+        .users-header, .users-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .users-header p, .users-subtitle {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .users-card {
+            background: #111827;
+            border: 1px solid #263247;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .users-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .users-form input, .users-form select,
+        .users-search {
+            width: 100%;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #0b1220;
+            color: #f8fafc;
+        }
+
+        .users-form label {
+            margin-bottom: 7px;
+        }
+
+        .users-field {
+            min-width: 0;
+        }
+
+        .users-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        .users-btn {
+            padding: 11px 15px;
+            border: 0;
+            border-radius: 8px;
+            background: #4f46e5;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .users-btn.secondary {
+            background: #334155;
+        }
+
+        .users-btn.danger {
+            background: #991b1b;
+        }
+
+        .users-table-wrap {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        .users-table th, .users-table td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #263247;
+        }
+
+        .users-table th {
+            color: #a5b4fc;
+            font-size: 12px;
+        }
+
+        .users-table td {
+            font-size: 13px;
+        }
+
+        .users-status {
+            color: #86efac;
+        }
+
+        .users-message {
+            min-height: 20px;
+            margin-bottom: 15px;
+            color: #a5b4fc;
+        }
+
+        .users-back {
+            color: #a5b4fc;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .users-form {
+                grid-template-columns: 1fr;
+            }
+
+            .users-buttons {
+                grid-column: auto;
+            }
+
+            .users-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="users-page">
+        <header class="users-header">
+            <div>
+                <a class="users-back" href="panel.html">← Volver al panel</a>
+                <h1 style="text-align:left; margin-top:18px">Gestión de usuarios</h1>
+                <p>Administra los usuarios y sus roles.</p>
+            </div>
+            <button class="users-btn secondary" id="cerrarSesion">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <section class="users-card">
+            <h2 id="formTitulo">Registrar usuario</h2>
+            <p class="users-subtitle">Completa los datos del usuario.</p>
+
+            <form id="usuarioForm" class="users-form" style="margin-top:20px">
+                <input type="hidden" id="usuarioId">
+
+                <div class="users-field">
+                    <label for="nombre">Nombre completo</label>
+                    <input id="nombre" required maxlength="100"
+                           placeholder="Ej. Juan Pérez">
+                </div>
+
+                <div class="users-field">
+                    <label for="nombreUsuario">Nombre de usuario</label>
+                    <input id="nombreUsuario" required maxlength="40"
+                           autocomplete="off" placeholder="Ej. jperez">
+                </div>
+
+                <div class="users-field">
+                    <label for="correo">Correo electrónico</label>
+                    <input id="correo" type="email" required maxlength="120"
+                           placeholder="usuario@empresa.com">
+                </div>
+                <div class="users-field">
+                <label for="password">Contraseña</label>
+                <input id="password" type="password" required minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Mínimo 8 caracteres">
+                </div>
+
+                <div class="users-field">
+                    <label for="rol">Rol</label>
+                    <select id="rol" required>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Empleado">Empleado</option>
+                        <option value="Supervisor">Supervisor</option>
+                    </select>
+                </div>
+
+                <div class="users-buttons">
+                    <button class="users-btn" type="submit" id="guardarBtn">
+                        Registrar usuario
+                    </button>
+                    <button class="users-btn secondary" type="button" id="cancelarBtn">
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="users-card">
+            <div class="users-actions">
+                <div>
+                    <h2>Usuarios registrados</h2>
+                    <p class="users-subtitle">Datos locales de demostración.</p>
+                </div>
+                <input class="users-search" id="buscar"
+                       placeholder="Buscar usuario..." style="max-width:280px">
+            </div>
+
+            <p class="users-message" id="mensaje" role="status"
+               aria-live="polite"></p>
+
+            <div class="users-table-wrap">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuarios"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+  <script>  
+const API_URL = "http://localhost:8080/api/usuarios";
+
+const form = document.getElementById("usuarioForm");
+const tabla = document.getElementById("tablaUsuarios");
+const mensaje = document.getElementById("mensaje");
+const buscar = document.getElementById("buscar");
+const password = document.getElementById("password");
+
+let usuarios = [];
+
+function mostrarMensaje(texto) {
+    mensaje.textContent = texto;
+}
+
+
+function limpiarFormulario() {
+    form.reset();
+    document.getElementById("usuarioId").value = "";
+    document.getElementById("formTitulo").textContent = "Registrar usuario";
+    document.getElementById("guardarBtn").textContent = "Registrar usuario";
+    password.required = true;
+}
+
+
+async function cargarUsuarios() {
+    try {
+        const respuesta = await fetch(API_URL);
+
+        if (!respuesta.ok) {
+            throw new Error("Error al consultar usuarios.");
+        }
+
+        usuarios = await respuesta.json();
+        renderizarUsuarios(buscar.value);
+    } catch (error) {
+        mostrarMensaje("No se pudo conectar con el backend: " + error.message);
+    }
+}
+
+
+function renderizarUsuarios(filtro = "") {
+    tabla.replaceChildren();
+
+    const coincidencias = usuarios.filter(u =>
+        `${u.nombre || u.nombreCompleto || ""} ${u.usuario || ""} ${u.correo || ""} ${u.rol || ""}`
+            .toLowerCase()
+            .includes(filtro.toLowerCase())
+    );
+
+    if (coincidencias.length === 0) {
+        const fila = document.createElement("tr");
+        const celda = document.createElement("td");
+        celda.colSpan = 6;
+        celda.textContent = "No hay usuarios registrados en la base de datos.";
+        fila.appendChild(celda);
+        tabla.appendChild(fila);
+        return;
+    }
+
+    coincidencias.forEach(u => {
+        const fila = document.createElement("tr");
+
+        [
+            u.id,
+            u.nombre || u.nombreCompleto || "",
+            u.usuario,
+            u.correo || "",
+            u.rol || ""
+        ].forEach(valor => {
+            const celda = document.createElement("td");
+            celda.textContent = valor ?? "";
+            fila.appendChild(celda);
+        });
+
+        const acciones = document.createElement("td");
+
+        const botonEditar = document.createElement("button");
+        botonEditar.type = "button";
+        botonEditar.className = "users-btn secondary";
+        botonEditar.textContent = "Editar";
+        botonEditar.addEventListener("click", () => editarUsuario(u.id));
+
+        const botonEliminar = document.createElement("button");
+        botonEliminar.type = "button";
+        botonEliminar.className = "users-btn danger";
+        botonEliminar.textContent = "Eliminar";
+        botonEliminar.style.marginLeft = "8px";
+        botonEliminar.addEventListener("click", () => eliminarUsuario(u.id));
+
+        acciones.append(botonEditar, botonEliminar);
+        fila.appendChild(acciones);
+        tabla.appendChild(fila);
+    });
+}
+
+async function editarUsuario(id) {
+    const usuario = usuarios.find(u => u.id === id);
+
+    if (!usuario) {
+        mostrarMensaje("No se encontró el usuario.");
+        return;
+    }
+
+    document.getElementById("usuarioId").value = usuario.id;
+    document.getElementById("nombre").value =
+        usuario.nombre || usuario.nombreCompleto || "";
+    document.getElementById("nombreUsuario").value = usuario.usuario || "";
+    document.getElementById("correo").value = usuario.correo || "";
+    document.getElementById("rol").value = usuario.rol || "EMPLEADO";
+
+    password.required = false;
+    password.value = "";
+
+    document.getElementById("formTitulo").textContent = "Editar usuario";
+    document.getElementById("guardarBtn").textContent = "Guardar cambios";
+
+    mostrarMensaje("Modifica los datos y pulsa Guardar cambios.");
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function eliminarUsuario(id) {
+    const confirmado = confirm("¿Seguro que deseas eliminar este usuario?");
+
+    if (!confirmado) return;
+
+    try {
+        const respuesta = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE"
+        });
+
+        if (!respuesta.ok) {
+            const detalle = await respuesta.text();
+            throw new Error(detalle || `Error HTTP ${respuesta.status}`);
+        }
+
+        mostrarMensaje("Usuario eliminado correctamente.");
+        await cargarUsuarios();
+    } catch (error) {
+        mostrarMensaje("No se pudo eliminar: " + error.message);
+    }
+}
+
+
+
+form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const id = document.getElementById("usuarioId").value;
+
+    const datos = {
+        nombreCompleto: document.getElementById("nombre").value.trim(),
+        usuario: document.getElementById("nombreUsuario").value.trim(),
+        correo: document.getElementById("correo").value.trim(),
+        rol: document.getElementById("rol").value.toUpperCase()
+    };
+
+    if (!id || password.value.trim()) {
+        if (password.value.length < 8) {
+            mostrarMensaje("La contraseña debe tener al menos 8 caracteres.");
+            return;
+        }
+        datos.passwordHash = password.value;
+    }
+
+    try {
+        const respuesta = await fetch(
+            id ? `${API_URL}/${id}` : API_URL,
+            {
+                method: id ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            }
+        );
+
+        if (!respuesta.ok) {
+            const detalle = await respuesta.text();
+            throw new Error(detalle || `Error HTTP ${respuesta.status}`);
+        }
+
+        mostrarMensaje(id
+            ? "Usuario actualizado correctamente."
+            : "Usuario registrado correctamente.");
+
+        limpiarFormulario();
+        password.required = true;
+        await cargarUsuarios();
+
+    } catch (error) {
+        mostrarMensaje("No se pudo guardar: " + error.message);
+    }
+});
+
+
+document.getElementById("cancelarBtn")
+    .addEventListener("click", limpiarFormulario);
+
+buscar.addEventListener("input", () => {
+    renderizarUsuarios(buscar.value);
+});
+
+document.getElementById("cerrarSesion")
+    .addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+
+cargarUsuarios();
+</script>
+</body>
+</html>

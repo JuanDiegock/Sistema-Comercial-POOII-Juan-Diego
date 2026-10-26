@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de clientes | Sistema Comercial</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        .clientes-page {
+            width: min(1200px, 94%);
+            margin: 35px auto;
+        }
+
+        .clientes-header, .clientes-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .clientes-header p, .clientes-muted {
+            color: var(--texto-secundario);
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .clientes-card {
+            padding: 24px;
+            margin-bottom: 24px;
+            background: var(--superficie);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+        }
+
+        .clientes-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .clientes-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .clientes-field input,
+        .clientes-field select,
+        .clientes-search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--borde);
+            border-radius: 9px;
+            background: #0d1425;
+            color: white;
+        }
+
+        .clientes-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        .clientes-btn {
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 9px;
+            color: white;
+            background: var(--primario);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .clientes-btn:hover {
+            filter: brightness(1.12);
+        }
+
+        .clientes-btn.secundario {
+            background: #334155;
+        }
+
+        .clientes-btn.eliminar {
+            background: #991b1b;
+        }
+
+        .clientes-table-wrap {
+            overflow-x: auto;
+        }
+
+        .clientes-table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+        }
+
+        .clientes-table th,
+        .clientes-table td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--borde);
+            font-size: 13px;
+        }
+
+        .clientes-table th {
+            color: #a5b4fc;
+            font-size: 12px;
+        }
+
+        .clientes-message {
+            min-height: 22px;
+            margin-bottom: 12px;
+            color: #a5b4fc;
+            font-size: 13px;
+        }
+
+        .clientes-back {
+            display: inline-block;
+            margin-bottom: 18px;
+            color: #a5b4fc;
+            text-decoration: none;
+        }
+
+        .clientes-stat {
+            color: var(--texto-secundario);
+            font-size: 13px;
+        }
+
+        @media (max-width: 650px) {
+            .clientes-form {
+                grid-template-columns: 1fr;
+            }
+
+            .clientes-actions {
+                grid-column: auto;
+            }
+
+            .clientes-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="clientes-page">
+
+        <a class="clientes-back" href="panel.html">← Volver al panel principal</a>
+
+        <header class="clientes-header">
+            <div>
+                <span class="brand-label">SISTEMA COMERCIAL</span>
+                <h1>Gestión de clientes</h1>
+                <p>Administra la información de tus clientes.</p>
+            </div>
+            <button class="btn-logout" id="cerrarSesion" type="button">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <section class="clientes-card">
+            <h2 id="tituloFormulario">Registrar cliente</h2>
+            <p class="clientes-muted">Ingresa los datos del cliente.</p>
+
+            <form id="clienteForm" class="clientes-form">
+                <input type="hidden" id="clienteId">
+
+                <div class="clientes-field">
+                    <label for="nombre">Nombre o razón social *</label>
+                    <input id="nombre" maxlength="120" required
+                           placeholder="Nombre completo o empresa">
+                </div>
+
+                <div class="clientes-field">
+                    <label for="tipoDocumento">Tipo de documento *</label>
+                    <select id="tipoDocumento" required>
+                        <option value="DNI">DNI</option>
+                        <option value="RUC">RUC</option>
+                        <option value="CE">Carné de extranjería</option>
+                    </select>
+                </div>
+
+                <div class="clientes-field">
+                    <label for="documento">Número de documento *</label>
+                    <input id="documento" required maxlength="20"
+                           inputmode="numeric" placeholder="Número de documento">
+                </div>
+
+                <div class="clientes-field">
+                    <label for="correo">Correo electrónico</label>
+                    <input id="correo" type="email" maxlength="120"
+                           placeholder="cliente@correo.com">
+                </div>
+
+                <div class="clientes-field">
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" type="tel" maxlength="20"
+                           placeholder="Número de contacto">
+                </div>
+
+                <div class="clientes-field">
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" maxlength="180"
+                           placeholder="Dirección del cliente">
+                </div>
+
+                <div class="clientes-actions">
+                    <button class="clientes-btn" type="submit" id="guardarCliente">
+                        Registrar cliente
+                    </button>
+                    <button class="clientes-btn secundario" type="button" id="limpiarForm">
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="clientes-card">
+            <div class="clientes-toolbar">
+                <div>
+                    <h2>Clientes registrados</h2>
+                    <p class="clientes-muted">Registros de demostración local.</p>
+                </div>
+                <input class="clientes-search" id="buscarCliente"
+                       placeholder="Buscar cliente..." style="max-width:280px">
+            </div>
+
+            <p class="clientes-message" id="mensaje" role="status" aria-live="polite"></p>
+            <p class="clientes-stat" id="totalClientes"></p>
+
+            <div class="clientes-table-wrap">
+                <table class="clientes-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Documento</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientes"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const CLAVE = "sip_clientes_demo";
+        const formulario = document.getElementById("clienteForm");
+        const tabla = document.getElementById("tablaClientes");
+        const mensaje = document.getElementById("mensaje");
+        const busqueda = document.getElementById("buscarCliente");
+
+        let clientes = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+
+        function persistir() {
+            localStorage.setItem(CLAVE, JSON.stringify(clientes));
+        }
+
+        function mostrarMensaje(texto) {
+            mensaje.textContent = texto;
+        }
+
+        function limpiarFormulario() {
+            formulario.reset();
+            document.getElementById("clienteId").value = "";
+            document.getElementById("tituloFormulario").textContent = "Registrar cliente";
+            document.getElementById("guardarCliente").textContent = "Registrar cliente";
+        }
+
+        function crearCelda(fila, texto) {
+            const celda = document.createElement("td");
+            celda.textContent = texto || "—";
+            fila.appendChild(celda);
+            return celda;
+        }
+
+        function renderizar(filtro = "") {
+            tabla.replaceChildren();
+
+            const lista = clientes.filter(c =>
+                [c.nombre, c.tipoDocumento, c.documento, c.correo, c.telefono]
+                    .join(" ").toLowerCase().includes(filtro.toLowerCase())
+            );
+
+            document.getElementById("totalClientes").textContent =
+                `Mostrando ${lista.length} de ${clientes.length} clientes`;
+
+            if (lista.length === 0) {
+                const fila = document.createElement("tr");
+                const celda = crearCelda(fila, "No se encontraron clientes.");
+                celda.colSpan = 6;
+                tabla.appendChild(fila);
+                return;
+            }
+
+            lista.forEach(cliente => {
+                const fila = document.createElement("tr");
+                crearCelda(fila, cliente.id);
+                crearCelda(fila, cliente.nombre);
+                crearCelda(fila, `${cliente.tipoDocumento}: ${cliente.documento}`);
+                crearCelda(fila, cliente.correo);
+                crearCelda(fila, cliente.telefono);
+
+                const acciones = document.createElement("td");
+
+                const editar = document.createElement("button");
+                editar.type = "button";
+                editar.className = "clientes-btn secundario";
+                editar.textContent = "Editar";
+                editar.addEventListener("click", () => editarCliente(cliente.id));
+
+                const eliminar = document.createElement("button");
+                eliminar.type = "button";
+                eliminar.className = "clientes-btn eliminar";
+                eliminar.textContent = "Eliminar";
+                eliminar.style.marginLeft = "6px";
+                eliminar.addEventListener("click", () => eliminarCliente(cliente.id));
+
+                acciones.append(editar, eliminar);
+                fila.appendChild(acciones);
+                tabla.appendChild(fila);
+            });
+        }
+
+        formulario.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const id = document.getElementById("clienteId").value;
+            const nombre = document.getElementById("nombre").value.trim();
+            const tipoDocumento = document.getElementById("tipoDocumento").value;
+            const documento = document.getElementById("documento").value.trim();
+            const correo = document.getElementById("correo").value.trim();
+            const telefono = document.getElementById("telefono").value.trim();
+            const direccion = document.getElementById("direccion").value.trim();
+
+            if (!nombre || !documento) {
+                mostrarMensaje("Completa el nombre y el documento.");
+                return;
+            }
+
+            const duplicado = clientes.some(c =>
+                c.tipoDocumento === tipoDocumento &&
+                c.documento.toLowerCase() === documento.toLowerCase() &&
+                String(c.id) !== id
+            );
+
+            if (duplicado) {
+                mostrarMensaje("Ya existe un cliente con ese tipo y número de documento.");
+                return;
+            }
+
+            const datos = {
+                nombre, tipoDocumento, documento, correo, telefono, direccion
+            };
+
+            if (id) {
+                const indice = clientes.findIndex(c => String(c.id) === id);
+                if (indice === -1) return;
+
+                clientes[indice] = { ...clientes[indice], ...datos };
+                mostrarMensaje("Cliente actualizado correctamente.");
+            } else {
+                const nuevoId = clientes.length
+                    ? Math.max(...clientes.map(c => c.id)) + 1 : 1;
+
+                clientes.push({ id: nuevoId, ...datos });
+                mostrarMensaje("Cliente registrado correctamente.");
+            }
+
+            persistir();
+            limpiarFormulario();
+            renderizar(busqueda.value);
+        });
+
+        function editarCliente(id) {
+            const c = clientes.find(cliente => cliente.id === id);
+            if (!c) return;
+
+            document.getElementById("clienteId").value = c.id;
+            document.getElementById("nombre").value = c.nombre;
+            document.getElementById("tipoDocumento").value = c.tipoDocumento;
+            document.getElementById("documento").value = c.documento;
+            document.getElementById("correo").value = c.correo;
+            document.getElementById("telefono").value = c.telefono;
+            document.getElementById("direccion").value = c.direccion;
+            document.getElementById("tituloFormulario").textContent = "Editar cliente";
+            document.getElementById("guardarCliente").textContent = "Guardar cambios";
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function eliminarCliente(id) {
+            if (!confirm("¿Seguro que deseas eliminar este cliente?")) return;
+
+            clientes = clientes.filter(c => c.id !== id);
+            persistir();
+            renderizar(busqueda.value);
+            mostrarMensaje("Cliente eliminado correctamente.");
+        }
+
+        document.getElementById("limpiarForm")
+            .addEventListener("click", limpiarFormulario);
+
+        busqueda.addEventListener("input", () => renderizar(busqueda.value));
+
+        document.getElementById("cerrarSesion").addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+
+        renderizar();
+    </script>
+</body>
+</html>

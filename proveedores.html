@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de proveedores | Sistema Comercial</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        .proveedores-page {
+            width: min(1200px, 94%);
+            margin: 35px auto;
+        }
+
+        .proveedores-header, .proveedores-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .proveedores-header p, .proveedores-muted {
+            color: var(--texto-secundario);
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .proveedores-card {
+            padding: 24px;
+            margin-bottom: 24px;
+            background: var(--superficie);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+        }
+
+        .proveedores-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .proveedores-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .proveedores-field input,
+        .proveedores-search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--borde);
+            border-radius: 9px;
+            background: #0d1425;
+            color: white;
+        }
+
+        .proveedores-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        .proveedores-btn {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 9px;
+            color: white;
+            background: var(--primario);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .proveedores-btn:hover {
+            filter: brightness(1.12);
+        }
+
+        .proveedores-btn.secundario {
+            background: #334155;
+        }
+
+        .proveedores-btn.eliminar {
+            background: #991b1b;
+        }
+
+        .proveedores-table-wrap {
+            overflow-x: auto;
+        }
+
+        .proveedores-table {
+            width: 100%;
+            min-width: 850px;
+            border-collapse: collapse;
+        }
+
+        .proveedores-table th,
+        .proveedores-table td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--borde);
+            font-size: 13px;
+        }
+
+        .proveedores-table th {
+            color: #a5b4fc;
+            font-size: 12px;
+        }
+
+        .proveedores-message {
+            min-height: 22px;
+            margin-bottom: 12px;
+            color: #a5b4fc;
+            font-size: 13px;
+        }
+
+        .proveedores-back {
+            display: inline-block;
+            margin-bottom: 18px;
+            color: #a5b4fc;
+            text-decoration: none;
+        }
+
+        @media (max-width: 650px) {
+            .proveedores-form {
+                grid-template-columns: 1fr;
+            }
+
+            .proveedores-actions {
+                grid-column: auto;
+            }
+
+            .proveedores-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="proveedores-page">
+
+        <a class="proveedores-back" href="panel.html">← Volver al panel principal</a>
+
+        <header class="proveedores-header">
+            <div>
+                <span class="brand-label">SISTEMA COMERCIAL</span>
+                <h1>Gestión de proveedores</h1>
+                <p>Administra las empresas que abastecen al negocio.</p>
+            </div>
+            <button class="btn-logout" id="cerrarSesion" type="button">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <section class="proveedores-card">
+            <h2 id="tituloFormulario">Registrar proveedor</h2>
+            <p class="proveedores-muted">Ingresa los datos de la empresa proveedora.</p>
+
+            <form id="proveedorForm" class="proveedores-form">
+                <input type="hidden" id="proveedorId">
+
+                <div class="proveedores-field">
+                    <label for="razonSocial">Razón social *</label>
+                    <input id="razonSocial" maxlength="150" required
+                           placeholder="Nombre legal de la empresa">
+                </div>
+
+                <div class="proveedores-field">
+                    <label for="ruc">RUC *</label>
+                    <input id="ruc" required maxlength="11" minlength="11"
+                           inputmode="numeric" pattern="[0-9]{11}"
+                           title="El RUC debe tener 11 dígitos"
+                           placeholder="Ej. 20123456789">
+                </div>
+
+                <div class="proveedores-field">
+                    <label for="contacto">Persona de contacto *</label>
+                    <input id="contacto" maxlength="100" required
+                           placeholder="Nombre del contacto">
+                </div>
+
+                <div class="proveedores-field">
+                    <label for="correo">Correo electrónico</label>
+                    <input id="correo" type="email" maxlength="120"
+                           placeholder="contacto@empresa.com">
+                </div>
+
+                <div class="proveedores-field">
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" type="tel" maxlength="20"
+                           placeholder="Número de contacto">
+                </div>
+
+                <div class="proveedores-field">
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" maxlength="180"
+                           placeholder="Dirección fiscal o comercial">
+                </div>
+
+                <div class="proveedores-actions">
+                    <button class="proveedores-btn" type="submit" id="guardarProveedor">
+                        Registrar proveedor
+                    </button>
+                    <button class="proveedores-btn secundario" type="button" id="limpiarForm">
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="proveedores-card">
+            <div class="proveedores-toolbar">
+                <div>
+                    <h2>Proveedores registrados</h2>
+                    <p class="proveedores-muted">Registros locales de demostración.</p>
+                </div>
+                <input class="proveedores-search" id="buscarProveedor"
+                       placeholder="Buscar proveedor..." style="max-width:280px">
+            </div>
+
+            <p class="proveedores-message" id="mensaje" role="status" aria-live="polite"></p>
+            <p class="proveedores-muted" id="totalProveedores"></p>
+
+            <div class="proveedores-table-wrap">
+                <table class="proveedores-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Razón social</th>
+                            <th>RUC</th>
+                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProveedores"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const CLAVE = "sip_proveedores_demo";
+        const formulario = document.getElementById("proveedorForm");
+        const tabla = document.getElementById("tablaProveedores");
+        const mensaje = document.getElementById("mensaje");
+        const busqueda = document.getElementById("buscarProveedor");
+
+        let proveedores = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+
+        function persistir() {
+            localStorage.setItem(CLAVE, JSON.stringify(proveedores));
+        }
+
+        function mostrarMensaje(texto) {
+            mensaje.textContent = texto;
+        }
+
+        function limpiarFormulario() {
+            formulario.reset();
+            document.getElementById("proveedorId").value = "";
+            document.getElementById("tituloFormulario").textContent = "Registrar proveedor";
+            document.getElementById("guardarProveedor").textContent = "Registrar proveedor";
+        }
+
+        function celda(fila, texto) {
+            const td = document.createElement("td");
+            td.textContent = texto || "—";
+            fila.appendChild(td);
+            return td;
+        }
+
+        function renderizar(filtro = "") {
+            tabla.replaceChildren();
+
+            const lista = proveedores.filter(p =>
+                [p.razonSocial, p.ruc, p.contacto, p.correo, p.telefono]
+                    .join(" ").toLowerCase().includes(filtro.toLowerCase())
+            );
+
+            document.getElementById("totalProveedores").textContent =
+                `Mostrando ${lista.length} de ${proveedores.length} proveedores`;
+
+            if (lista.length === 0) {
+                const fila = document.createElement("tr");
+                const td = celda(fila, "No se encontraron proveedores.");
+                td.colSpan = 6;
+                tabla.appendChild(fila);
+                return;
+            }
+
+            lista.forEach(p => {
+                const fila = document.createElement("tr");
+
+                celda(fila, p.id);
+                celda(fila, p.razonSocial);
+                celda(fila, p.ruc);
+                celda(fila, p.contacto);
+                celda(fila, p.correo);
+
+                const acciones = document.createElement("td");
+
+                const editar = document.createElement("button");
+                editar.type = "button";
+                editar.className = "proveedores-btn secundario";
+                editar.textContent = "Editar";
+                editar.addEventListener("click", () => editarProveedor(p.id));
+
+                const eliminar = document.createElement("button");
+                eliminar.type = "button";
+                eliminar.className = "proveedores-btn eliminar";
+                eliminar.textContent = "Eliminar";
+                eliminar.style.marginLeft = "6px";
+                eliminar.addEventListener("click", () => eliminarProveedor(p.id));
+
+                acciones.append(editar, eliminar);
+                fila.appendChild(acciones);
+                tabla.appendChild(fila);
+            });
+        }
+
+        formulario.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const id = document.getElementById("proveedorId").value;
+            const razonSocial = document.getElementById("razonSocial").value.trim();
+            const ruc = document.getElementById("ruc").value.trim();
+            const contacto = document.getElementById("contacto").value.trim();
+            const correo = document.getElementById("correo").value.trim();
+            const telefono = document.getElementById("telefono").value.trim();
+            const direccion = document.getElementById("direccion").value.trim();
+
+            if (!/^[0-9]{11}$/.test(ruc)) {
+                mostrarMensaje("El RUC debe contener exactamente 11 dígitos.");
+                return;
+            }
+
+            const duplicado = proveedores.some(p =>
+                p.ruc === ruc && String(p.id) !== id
+            );
+
+            if (duplicado) {
+                mostrarMensaje("Ya existe un proveedor con ese RUC.");
+                return;
+            }
+
+            const datos = { razonSocial, ruc, contacto, correo, telefono, direccion };
+
+            if (id) {
+                const indice = proveedores.findIndex(p => String(p.id) === id);
+                if (indice === -1) return;
+
+                proveedores[indice] = { ...proveedores[indice], ...datos };
+                mostrarMensaje("Proveedor actualizado correctamente.");
+            } else {
+                const nuevoId = proveedores.length
+                    ? Math.max(...proveedores.map(p => p.id)) + 1 : 1;
+
+                proveedores.push({ id: nuevoId, ...datos });
+                mostrarMensaje("Proveedor registrado correctamente.");
+            }
+
+            persistir();
+            limpiarFormulario();
+            renderizar(busqueda.value);
+        });
+
+        function editarProveedor(id) {
+            const p = proveedores.find(proveedor => proveedor.id === id);
+            if (!p) return;
+
+            document.getElementById("proveedorId").value = p.id;
+            document.getElementById("razonSocial").value = p.razonSocial;
+            document.getElementById("ruc").value = p.ruc;
+            document.getElementById("contacto").value = p.contacto;
+            document.getElementById("correo").value = p.correo;
+            document.getElementById("telefono").value = p.telefono;
+            document.getElementById("direccion").value = p.direccion;
+            document.getElementById("tituloFormulario").textContent = "Editar proveedor";
+            document.getElementById("guardarProveedor").textContent = "Guardar cambios";
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function eliminarProveedor(id) {
+            if (!confirm("¿Seguro que deseas eliminar este proveedor?")) return;
+
+            proveedores = proveedores.filter(p => p.id !== id);
+            persistir();
+            renderizar(busqueda.value);
+            mostrarMensaje("Proveedor eliminado correctamente.");
+        }
+
+        document.getElementById("limpiarForm")
+            .addEventListener("click", limpiarFormulario);
+
+        busqueda.addEventListener("input", () => renderizar(busqueda.value));
+
+        document.getElementById("cerrarSesion").addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+
+        renderizar();
+    </script>
+</body>
+</html>

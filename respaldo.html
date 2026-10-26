@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respaldo y recuperación de datos</title>
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <style>
+        .respaldo {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .tarjeta, .seccion {
+            background: #ffffff;
+            color: #111827;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .tarjeta h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .valor {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .seccion h2 {
+            margin-bottom: 15px;
+        }
+
+        .acciones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        .acciones button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            background: #4f46e5;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .acciones button:hover {
+            background: #3730a3;
+        }
+
+        .acciones .secundario {
+            background: #475569;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            color: #111827;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        th {
+            background: #e5e7eb;
+        }
+
+        .aviso {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 14px;
+            border-radius: 8px;
+            margin: 18px 0;
+        }
+
+        .estado {
+            font-weight: bold;
+            color: #047857;
+        }
+
+        @media (max-width: 700px) {
+            .tarjetas {
+                grid-template-columns: 1fr;
+            }
+
+            .respaldo {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="respaldo">
+
+    <h1>Respaldo y recuperación de datos</h1>
+    <p>Administración de copias de seguridad del sistema comercial.</p>
+
+    <div class="aviso">
+        Modo de demostración: esta pantalla no crea copias reales de MySQL.
+        La copia y restauración definitivas se implementarán en el backend.
+    </div>
+
+    <div class="tarjetas">
+        <section class="tarjeta">
+            <h3>Respaldos registrados</h3>
+            <p class="valor" id="totalRespaldos">0</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Último respaldo</h3>
+            <p class="valor" id="ultimoRespaldo">Ninguno</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Estado del módulo</h3>
+            <p class="valor">Demostración</p>
+        </section>
+    </div>
+
+    <section class="seccion">
+        <h2>Administrar respaldos</h2>
+        <p>
+            Puedes descargar un archivo demostrativo con los datos locales
+            actuales. Este archivo no es una copia de seguridad de MySQL.
+        </p>
+
+        <div class="acciones">
+            <button type="button" onclick="crearRespaldoDemo()">
+                Descargar respaldo de demostración
+            </button>
+
+            <button type="button" class="secundario"
+                    onclick="document.getElementById('archivoRespaldo').click()">
+                Seleccionar archivo JSON
+            </button>
+
+            <button type="button" class="secundario"
+                    onclick="location.href='panel.html'">
+                Volver al menú
+            </button>
+        </div>
+
+        <input type="file" id="archivoRespaldo"
+               accept=".json,application/json" hidden>
+
+        <p id="mensaje"></p>
+    </section>
+
+    <section class="seccion">
+        <h2>Historial de respaldos de demostración</h2>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha y hora</th>
+                        <th>Tipo</th>
+                        <th>Archivo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaRespaldos"></tbody>
+            </table>
+        </div>
+
+        <p id="sinRespaldos">No hay respaldos registrados.</p>
+    </section>
+
+</main>
+
+<script>
+    const CLAVE_HISTORIAL = "sip_respaldos_demo";
+
+    function obtenerHistorial() {
+        try {
+            const datos = JSON.parse(
+                localStorage.getItem(CLAVE_HISTORIAL) || "[]"
+            );
+            return Array.isArray(datos) ? datos : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function guardarHistorial(historial) {
+        localStorage.setItem(
+            CLAVE_HISTORIAL,
+            JSON.stringify(historial)
+        );
+    }
+
+    function descargarJSON(datos, nombreArchivo) {
+        const contenido = JSON.stringify(datos, null, 2);
+        const blob = new Blob([contenido], {
+            type: "application/json;charset=utf-8"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement("a");
+
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+
+        URL.revokeObjectURL(url);
+    }
+
+    function crearRespaldoDemo() {
+        const fecha = new Date();
+        const nombre =
+            "respaldo_demo_" +
+            fecha.toISOString().replace(/[:.]/g, "-") +
+            ".json";
+
+        const datos = {
+            tipo: "RESPALDO DE DEMOSTRACION",
+            fechaGeneracion: fecha.toISOString(),
+            advertencia:
+                "No es una copia real de MySQL ni permite restaurar la base de datos.",
+            ventas: JSON.parse(
+                localStorage.getItem("sip_ventas_demo") || "[]"
+            ),
+            productos: JSON.parse(
+                localStorage.getItem("sip_productos_demo") || "[]"
+            ),
+            usuarios: JSON.parse(
+                localStorage.getItem("sip_usuarios_demo") || "[]"
+            ),
+            clientes: JSON.parse(
+                localStorage.getItem("sip_clientes_demo") || "[]"
+            ),
+            proveedores: JSON.parse(
+                localStorage.getItem("sip_proveedores_demo") || "[]"
+            )
+        };
+
+        descargarJSON(datos, nombre);
+
+        const historial = obtenerHistorial();
+
+        historial.unshift({
+            fecha: fecha.toLocaleString("es-PE"),
+            tipo: "Exportación demostrativa",
+            archivo: nombre,
+            estado: "Descargado"
+        });
+
+        guardarHistorial(historial);
+        mostrarHistorial();
+
+        document.getElementById("mensaje").textContent =
+            "Se descargó el archivo JSON demostrativo. No es un respaldo de MySQL.";
+    }
+
+    function mostrarHistorial() {
+        const historial = obtenerHistorial();
+        const tabla = document.getElementById("tablaRespaldos");
+
+        tabla.replaceChildren();
+
+        document.getElementById("totalRespaldos").textContent =
+            historial.length;
+
+        document.getElementById("ultimoRespaldo").textContent =
+            historial.length ? historial[0].fecha : "Ninguno";
+
+        historial.forEach(respaldo => {
+            const fila = document.createElement("tr");
+
+            [
+                respaldo.fecha,
+                respaldo.tipo,
+                respaldo.archivo,
+                respaldo.estado
+            ].forEach(valor => {
+                const celda = document.createElement("td");
+                celda.textContent = valor;
+                fila.appendChild(celda);
+            });
+
+            tabla.appendChild(fila);
+        });
+
+        document.getElementById("sinRespaldos").style.display =
+            historial.length ? "none" : "block";
+    }
+
+    document.getElementById("archivoRespaldo")
+        .addEventListener("change", async function() {
+            const archivo = this.files[0];
+            const mensaje = document.getElementById("mensaje");
+
+            if (!archivo) return;
+
+            try {
+                const contenido = await archivo.text();
+                const datos = JSON.parse(contenido);
+
+                if (
+                    !datos ||
+                    typeof datos !== "object" ||
+                    Array.isArray(datos)
+                ) {
+                    throw new Error("Formato no válido");
+                }
+
+                mensaje.textContent =
+                    "El JSON se pudo leer correctamente. " +
+                    "No se restauraron datos en el sistema.";
+            } catch {
+                mensaje.textContent =
+                    "No se pudo leer el archivo. Selecciona un JSON válido.";
+            }
+
+            this.value = "";
+        });
+
+    mostrarHistorial();
+</script>
+
+</body>
+</html>

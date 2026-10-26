@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos e inventario</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        .modulo {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .form-productos, .tabla-productos {
+            background: #fff;
+            color: #222;
+            padding: 22px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .campos input, .campos select, #buscar {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 7px;
+        }
+
+        .tabla-contenedor { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 11px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background: #eee; }
+        .stock-bajo { color: #c62828; font-weight: bold; }
+
+        @media (max-width: 650px) {
+            .campos { grid-template-columns: 1fr; }
+            .modulo { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="modulo">
+        <h1>Productos e inventario</h1>
+        <p>Registro y control de productos e insumos.</p>
+
+        <section class="form-productos">
+            <h2 id="tituloFormulario">Registrar producto</h2>
+
+            <form id="formProducto">
+                <input type="hidden" id="idProducto">
+
+                <div class="campos">
+                    <input id="codigo" placeholder="Código del producto" required>
+                    <input id="nombre" placeholder="Nombre del producto" required>
+
+                    <select id="categoria" required>
+                        <option value="">Seleccionar categoría</option>
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Insumos">Insumos</option>
+                        <option value="Equipos">Equipos</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+
+                    <input id="unidad" placeholder="Unidad (unidad, caja, litro...)" required>
+                    <input id="precio" type="number" min="0" step="0.01"
+                           placeholder="Precio unitario" required>
+                    <input id="stock" type="number" min="0" step="1"
+                           placeholder="Stock actual" required>
+                    <input id="stockMinimo" type="number" min="0" step="1"
+                           placeholder="Stock mínimo" required>
+                </div>
+
+                <div class="acciones">
+                    <button type="submit" id="btnGuardar">Guardar producto</button>
+                    <button type="button" onclick="limpiarFormulario()">Cancelar edición</button>
+                    <button type="button" onclick="location.href='panel.html'">
+                        Volver al menú
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="tabla-productos">
+            <h2>Inventario registrado</h2>
+            <input id="buscar" placeholder="Buscar por código, nombre o categoría...">
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaProductos"></tbody>
+                </table>
+            </div>
+            <p id="mensajeVacio">Todavía no hay productos registrados.</p>
+        </section>
+    </main>
+
+    <script>
+        const CLAVE = "sip_productos_demo";
+        const form = document.getElementById("formProducto");
+        const lista = document.getElementById("listaProductos");
+        const buscar = document.getElementById("buscar");
+
+        let productos = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+
+        function guardarDatos() {
+            localStorage.setItem(CLAVE, JSON.stringify(productos));
+        }
+
+        function limpiarFormulario() {
+            form.reset();
+            document.getElementById("idProducto").value = "";
+            document.getElementById("tituloFormulario").textContent =
+                "Registrar producto";
+            document.getElementById("btnGuardar").textContent =
+                "Guardar producto";
+        }
+
+        form.addEventListener("submit", function(evento) {
+            evento.preventDefault();
+
+            const id = document.getElementById("idProducto").value;
+            const codigo = document.getElementById("codigo").value.trim();
+            const nombre = document.getElementById("nombre").value.trim();
+            const categoria = document.getElementById("categoria").value;
+            const unidad = document.getElementById("unidad").value.trim();
+            const precio = Number(document.getElementById("precio").value);
+            const stock = Number(document.getElementById("stock").value);
+            const stockMinimo = Number(document.getElementById("stockMinimo").value);
+
+            if (!codigo || !nombre || !unidad ||
+                precio < 0 || stock < 0 || stockMinimo < 0 ||
+                !Number.isFinite(precio) ||
+                !Number.isInteger(stock) ||
+                !Number.isInteger(stockMinimo)) {
+                alert("Verifica los datos ingresados.");
+                return;
+            }
+
+            const codigoDuplicado = productos.some(p =>
+                p.codigo.toLowerCase() === codigo.toLowerCase() &&
+                String(p.id) !== id
+            );
+
+            if (codigoDuplicado) {
+                alert("Ya existe un producto con ese código.");
+                return;
+            }
+
+            const producto = {
+                id: id ? Number(id) : Date.now(),
+                codigo, nombre, categoria, unidad,
+                precio, stock, stockMinimo
+            };
+
+            if (id) {
+                productos = productos.map(p =>
+                    String(p.id) === id ? producto : p
+                );
+                alert("Producto actualizado correctamente.");
+            } else {
+                productos.push(producto);
+                alert("Producto registrado correctamente.");
+            }
+
+            guardarDatos();
+            limpiarFormulario();
+            mostrarProductos();
+        });
+
+        function mostrarProductos() {
+            const texto = buscar.value.trim().toLowerCase();
+
+            const filtrados = productos.filter(p =>
+                p.codigo.toLowerCase().includes(texto) ||
+                p.nombre.toLowerCase().includes(texto) ||
+                p.categoria.toLowerCase().includes(texto)
+            );
+
+            lista.innerHTML = "";
+
+            filtrados.forEach(p => {
+                const fila = document.createElement("tr");
+
+                const valores = [
+                    p.codigo,
+                    p.nombre,
+                    p.categoria,
+                    "S/ " + Number(p.precio).toFixed(2),
+                    p.stock + " " + p.unidad,
+                    p.stock <= p.stockMinimo ? "Stock bajo" : "Disponible"
+                ];
+
+                valores.forEach((valor, indice) => {
+                    const celda = document.createElement("td");
+                    celda.textContent = valor;
+
+                    if (indice === 5 && p.stock <= p.stockMinimo) {
+                        celda.className = "stock-bajo";
+                    }
+
+                    fila.appendChild(celda);
+                });
+
+                const acciones = document.createElement("td");
+                const editar = document.createElement("button");
+                editar.textContent = "Editar";
+                editar.addEventListener("click", () => editarProducto(p.id));
+
+                const eliminar = document.createElement("button");
+                eliminar.textContent = "Eliminar";
+                eliminar.addEventListener("click", () => eliminarProducto(p.id));
+
+                acciones.append(editar, eliminar);
+                fila.appendChild(acciones);
+                lista.appendChild(fila);
+            });
+
+            document.getElementById("mensajeVacio").style.display =
+                filtrados.length ? "none" : "block";
+        }
+
+        function editarProducto(id) {
+            const p = productos.find(producto => producto.id === id);
+            if (!p) return;
+
+            document.getElementById("idProducto").value = p.id;
+            document.getElementById("codigo").value = p.codigo;
+            document.getElementById("nombre").value = p.nombre;
+            document.getElementById("categoria").value = p.categoria;
+            document.getElementById("unidad").value = p.unidad;
+            document.getElementById("precio").value = p.precio;
+            document.getElementById("stock").value = p.stock;
+            document.getElementById("stockMinimo").value = p.stockMinimo;
+
+            document.getElementById("tituloFormulario").textContent =
+                "Editar producto";
+            document.getElementById("btnGuardar").textContent =
+                "Actualizar producto";
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function eliminarProducto(id) {
+            if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
+
+            productos = productos.filter(p => p.id !== id);
+            guardarDatos();
+            mostrarProductos();
+            limpiarFormulario();
+        }
+
+        buscar.addEventListener("input", mostrarProductos);
+        mostrarProductos();
+    </script>
+</body>
+</html>
+```

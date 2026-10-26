@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Principal | Sistema Comercial</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="panel-container">
+
+        <header class="panel-header">
+            <div>
+                <span class="brand-label">SISTEMA COMERCIAL</span>
+                <h1>Panel Principal</h1>
+                <p>Bienvenido, administrador</p>
+            </div>
+
+            <button id="cerrarSesion" class="btn-logout">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <main class="panel-content">
+            <h2>Dashboard</h2>
+            <p class="panel-description">
+                Selecciona el módulo que deseas consultar.
+            </p>
+
+            <div class="cards">
+
+                <article class="card">
+                    <div class="card-icon">👥</div>
+                    <h3>Usuarios</h3>
+                    <p>Administra usuarios, estados y roles del sistema.</p>
+                    <button type="button"
+                    onclick="window.location.href='usuarios.html'">
+                    Administrar
+                    </button>
+                    </article>
+
+                    <article class="card">
+                    <div class="card-icon">👤</div>
+                    <h3>Clientes</h3>
+                    <p>Consulta y administra la información de clientes.</p>
+                    <button type="button"
+                    onclick="window.location.href='clientes.html'">
+                    Ver clientes
+                </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon">🏢</div>
+                    <h3>Proveedores</h3>
+                    <p>Gestiona proveedores y sus datos comerciales.</p>
+                    <button type="button"
+                    onclick="window.location.href='proveedores.html'">
+                        Ver proveedores
+                    </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon">📦</div>
+                    <h3>Productos e inventario</h3>
+                    <p>Organiza productos, precios y existencias.</p>
+                    <button type="button"
+                    onclick="window.location.href='productos.html'">
+                        Ver inventario
+                    </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon">🛒</div>
+                    <h3>Ventas</h3>
+                    <p>Prepara la gestión de pedidos y operaciones de venta.</p>
+                    <button onclick="location.href='ventas.html'">
+                    Ver ventas
+                    </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Reportes</h3>
+                    <p>Consulta indicadores e informes del sistema.</p>
+                    <button onclick="location.href='reportes.html'">
+                    Ver reportes
+                    </button>
+                </article>
+
+          
+                <article class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>Seguridad y auditoría</h3>
+                    <p>Supervisa accesos, cambios y acciones del sistema.</p>
+                    <button type="button"
+                        onclick="location.href='auditoria.html'">
+                        Consultar auditoría
+                    </button>
+                </article>
+
+
+                <article class="card">
+                    <div class="card-icon">⚙️</div>
+                    <h3>Configuración</h3>
+                    <p>Configuración general del sistema comercial.</p>
+                   <button type="button" onclick="location.href='configuracion.html'">
+                 Configurar
+                </button>
+                </article>
+
+            </div>
+        </main>
+
+        <footer class="panel-footer">
+            Sistema Comercial · Proyecto POO II · MVC y patrones de diseño
+        </footer>
+
+    </div>
+
+
+<script>
+    // Volver al login
+    document.getElementById("cerrarSesion").addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+
+
+</script>
+
+
+</body>
+</html>

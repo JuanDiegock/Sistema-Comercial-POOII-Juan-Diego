@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguridad y auditoría</title>
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <style>
+        .auditoria {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+            margin: 24px 0;
+        }
+
+        .tarjeta, .seccion {
+            background: #fff;
+            color: #111827;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tarjeta h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .valor {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .filtros input, .filtros select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #9ca3af;
+            border-radius: 7px;
+            background: white;
+            color: #111827;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            color: #111827;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        th {
+            background: #e5e7eb;
+        }
+
+        .botones {
+            margin: 18px 0;
+        }
+
+        .botones button {
+            background: #4f46e5;
+            color: white;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            margin: 0 8px 8px 0;
+        }
+
+        .aviso {
+            color: #92400e;
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 700px) {
+            .tarjetas, .filtros {
+                grid-template-columns: 1fr;
+            }
+
+            .auditoria {
+                padding: 12px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white !important;
+            }
+
+            .botones, .filtros, .aviso {
+                display: none !important;
+            }
+
+            .auditoria {
+                margin: 0;
+                padding: 0;
+            }
+
+            .tarjeta, .seccion {
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="auditoria">
+    <h1>Seguridad y auditoría</h1>
+    <p>Consulta de accesos y actividades registradas en el sistema.</p>
+
+    <p class="aviso">
+        Modo demostración: los registros se almacenan en el navegador.
+        La auditoría definitiva deberá implementarse en el backend.
+    </p>
+
+    <div class="tarjetas">
+        <section class="tarjeta">
+            <h3>Actividades registradas</h3>
+            <p class="valor" id="totalActividades">0</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Accesos registrados</h3>
+            <p class="valor" id="totalAccesos">0</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Usuarios identificados</h3>
+            <p class="valor" id="totalUsuarios">0</p>
+        </section>
+    </div>
+
+    <div class="botones">
+        <button type="button" onclick="window.print()">
+            Imprimir / Guardar PDF
+        </button>
+
+        <button type="button" onclick="location.href='panel.html'">
+            Volver al menú
+        </button>
+    </div>
+
+    <section class="seccion">
+        <h2>Historial de actividades</h2>
+
+        <div class="filtros">
+            <input id="buscar" type="search"
+                   placeholder="Buscar usuario o detalle...">
+
+            <select id="filtroModulo">
+                <option value="">Todos los módulos</option>
+                <option value="Acceso">Acceso al sistema</option>
+                <option value="Usuarios">Usuarios</option>
+                <option value="Clientes">Clientes</option>
+                <option value="Proveedores">Proveedores</option>
+                <option value="Productos">Productos e inventario</option>
+                <option value="Ventas">Ventas</option>
+            </select>
+
+            <select id="filtroAccion">
+                <option value="">Todas las acciones</option>
+                <option value="Inicio de sesión">Inicio de sesión</option>
+                <option value="Intento fallido">Intento fallido</option>
+                <option value="Registro">Registro</option>
+                <option value="Modificación">Modificación</option>
+                <option value="Eliminación">Eliminación</option>
+            </select>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha y hora</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaActividades"></tbody>
+            </table>
+        </div>
+
+        <p id="sinActividades">No hay actividades que mostrar.</p>
+    </section>
+</main>
+
+<script>
+    const CLAVE_AUDITORIA = "sip_auditoria_demo";
+
+    function obtenerActividades() {
+        try {
+            const datos = JSON.parse(
+                localStorage.getItem(CLAVE_AUDITORIA) || "[]"
+            );
+            return Array.isArray(datos) ? datos : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function mostrarActividades() {
+        const actividades = obtenerActividades();
+        const texto = document.getElementById("buscar")
+            .value.trim().toLowerCase();
+        const modulo = document.getElementById("filtroModulo").value;
+        const accion = document.getElementById("filtroAccion").value;
+
+        document.getElementById("totalActividades").textContent =
+            actividades.length;
+
+        document.getElementById("totalAccesos").textContent =
+            actividades.filter(a =>
+                a.modulo === "Acceso" &&
+                a.accion === "Inicio de sesión"
+            ).length;
+
+        document.getElementById("totalUsuarios").textContent =
+            new Set(
+                actividades
+                    .map(a => a.usuario)
+                    .filter(Boolean)
+            ).size;
+
+        const filtradas = actividades.filter(a => {
+            const coincideTexto =
+                String(a.usuario || "").toLowerCase().includes(texto) ||
+                String(a.detalle || "").toLowerCase().includes(texto);
+
+            const coincideModulo = !modulo || a.modulo === modulo;
+            const coincideAccion = !accion || a.accion === accion;
+
+            return coincideTexto && coincideModulo && coincideAccion;
+        });
+
+        const tabla = document.getElementById("tablaActividades");
+        tabla.replaceChildren();
+
+        filtradas.forEach(a => {
+            const fila = document.createElement("tr");
+
+            [
+                a.fecha || "-",
+                a.usuario || "No identificado",
+                a.modulo || "-",
+                a.accion || "-",
+                a.detalle || "-"
+            ].forEach(valor => {
+                const celda = document.createElement("td");
+                celda.textContent = valor;
+                fila.appendChild(celda);
+            });
+
+            tabla.appendChild(fila);
+        });
+
+        document.getElementById("sinActividades").style.display =
+            filtradas.length ? "none" : "block";
+    }
+
+    document.getElementById("buscar")
+        .addEventListener("input", mostrarActividades);
+
+    document.getElementById("filtroModulo")
+        .addEventListener("change", mostrarActividades);
+
+    document.getElementById("filtroAccion")
+        .addEventListener("change", mostrarActividades);
+
+    mostrarActividades();
+</script>
+</body>
+</html>

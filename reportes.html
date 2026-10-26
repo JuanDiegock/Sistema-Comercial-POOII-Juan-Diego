@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes comerciales</title>
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <style>
+        .reportes {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 25px;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .tarjeta,
+        .seccion {
+            background: #ffffff;
+            color: #111827;
+            padding: 22px;
+            border-radius: 12px;
+        }
+
+        .tarjeta h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+
+        .valor {
+            font-size: 25px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .seccion {
+            margin-top: 20px;
+        }
+
+        .seccion h2 {
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .seccion table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+        }
+
+        .seccion th,
+        .seccion td {
+            padding: 12px;
+            text-align: left;
+            color: #111827;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .seccion th {
+            background: #e5e7eb;
+            font-weight: 700;
+        }
+
+        .botones {
+            margin: 20px 0;
+        }
+
+        .botones button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            background: #4f46e5;
+            color: #ffffff;
+            cursor: pointer;
+            margin: 0 8px 8px 0;
+            font-weight: 600;
+        }
+
+        .botones button:hover {
+            background: #3730a3;
+        }
+
+        .estado-bajo {
+            color: #b91c1c !important;
+            font-weight: bold;
+        }
+
+        .estado-disponible {
+            color: #047857 !important;
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+            .tarjetas {
+                grid-template-columns: 1fr;
+            }
+
+            .reportes {
+                padding: 12px;
+            }
+        }
+
+        /* Diseño del informe al imprimir o guardar como PDF */
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                min-height: auto;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .reportes {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .reportes > h1 {
+                color: #111827 !important;
+                font-size: 22px;
+            }
+
+            .reportes > p {
+                color: #374151 !important;
+            }
+
+            .botones {
+                display: none !important;
+            }
+
+            .tarjetas {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 10px;
+                margin: 15px 0;
+            }
+
+            .tarjeta,
+            .seccion {
+                background: #ffffff !important;
+                color: #111827 !important;
+                border: 1px solid #d1d5db;
+                border-radius: 0;
+                padding: 12px;
+                box-shadow: none;
+                break-inside: avoid;
+            }
+
+            .tarjeta h3,
+            .tarjeta .valor,
+            .seccion h2 {
+                color: #111827 !important;
+            }
+
+            .tabla-contenedor {
+                overflow: visible;
+            }
+
+            .seccion table {
+                width: 100%;
+                font-size: 10px;
+            }
+
+            .seccion th,
+            .seccion td {
+                color: #111827 !important;
+                padding: 7px;
+                overflow-wrap: anywhere;
+            }
+
+            .seccion th {
+                background: #e5e7eb !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="reportes">
+
+    <h1>Reportes comerciales</h1>
+    <p>Resumen de ventas e inventario registrado.</p>
+
+    <!-- Indicadores generales -->
+    <div class="tarjetas">
+        <section class="tarjeta">
+            <h3>Ventas registradas</h3>
+            <p class="valor" id="cantidadVentas">0</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Ingresos por ventas</h3>
+            <p class="valor" id="ingresos">S/ 0.00</p>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Productos en inventario</h3>
+            <p class="valor" id="cantidadProductos">0</p>
+        </section>
+    </div>
+
+    <!-- Botones -->
+    <div class="botones">
+        <button type="button" onclick="imprimirReporte()">
+            Imprimir / Guardar PDF
+        </button>
+
+        <button type="button" onclick="location.href='panel.html'">
+            Volver al menú
+        </button>
+    </div>
+
+    <!-- Reporte de ventas -->
+    <section class="seccion">
+        <h2>Detalle de ventas</h2>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaVentas"></tbody>
+            </table>
+        </div>
+
+        <p id="sinVentas">No hay ventas registradas.</p>
+    </section>
+
+    <!-- Reporte de inventario -->
+    <section class="seccion">
+        <h2>Resumen de inventario</h2>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Stock actual</th>
+                        <th>Stock mínimo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaProductos"></tbody>
+            </table>
+        </div>
+
+        <p id="sinProductos">No hay productos registrados.</p>
+    </section>
+
+</main>
+
+<script>
+    const CLAVE_VENTAS = "sip_ventas_demo";
+    const CLAVE_PRODUCTOS = "sip_productos_demo";
+
+    function obtenerVentas() {
+        return JSON.parse(
+            localStorage.getItem(CLAVE_VENTAS) || "[]"
+        );
+    }
+
+    function obtenerProductos() {
+        return JSON.parse(
+            localStorage.getItem(CLAVE_PRODUCTOS) || "[]"
+        );
+    }
+
+    function mostrarReporte() {
+        const ventas = obtenerVentas();
+        const productos = obtenerProductos();
+
+        // Indicadores generales
+        document.getElementById("cantidadVentas").textContent =
+            ventas.length;
+
+        const ingresos = ventas.reduce(
+            (suma, venta) => suma + Number(venta.total || 0),
+            0
+        );
+
+        document.getElementById("ingresos").textContent =
+            "S/ " + ingresos.toFixed(2);
+
+        document.getElementById("cantidadProductos").textContent =
+            productos.length;
+
+        // Mostrar ventas
+        const tablaVentas = document.getElementById("tablaVentas");
+        tablaVentas.innerHTML = "";
+
+        ventas.forEach(venta => {
+            const fila = document.createElement("tr");
+
+            [
+                venta.numero,
+                venta.fecha,
+                venta.cliente,
+                "S/ " + Number(venta.total || 0).toFixed(2)
+            ].forEach(valor => {
+                const celda = document.createElement("td");
+                celda.textContent = valor;
+                fila.appendChild(celda);
+            });
+
+            tablaVentas.appendChild(fila);
+        });
+
+        document.getElementById("sinVentas").style.display =
+            ventas.length > 0 ? "none" : "block";
+
+        // Mostrar inventario
+        const tablaProductos =
+            document.getElementById("tablaProductos");
+
+        tablaProductos.innerHTML = "";
+
+        productos.forEach(producto => {
+            const fila = document.createElement("tr");
+
+            const stockBajo =
+                Number(producto.stock) <=
+                Number(producto.stockMinimo);
+
+            [
+                producto.codigo,
+                producto.nombre,
+                producto.stock,
+                producto.stockMinimo,
+                stockBajo ? "Stock bajo" : "Disponible"
+            ].forEach((valor, indice) => {
+                const celda = document.createElement("td");
+                celda.textContent = valor;
+
+                if (indice === 4) {
+                    celda.className = stockBajo
+                        ? "estado-bajo"
+                        : "estado-disponible";
+                }
+
+                fila.appendChild(celda);
+            });
+
+            tablaProductos.appendChild(fila);
+        });
+
+        document.getElementById("sinProductos").style.display =
+            productos.length > 0 ? "none" : "block";
+    }
+
+    // Abre la impresión para imprimir o guardar como PDF
+    function imprimirReporte() {
+        window.print();
+    }
+
+    // Cargar los datos al abrir el módulo
+    mostrarReporte();
+</script>
+
+</body>
+</html>
