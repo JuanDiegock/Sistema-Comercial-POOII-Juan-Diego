@@ -9,18 +9,15 @@ const intentosTexto = document.getElementById("intentosTexto");
 const barras = document.querySelectorAll(".attempt-bar");
 
 const MAX_INTENTOS = 3;
-
 const CLAVE_INTENTOS = "acceso_intentos";
 const CLAVE_BLOQUEADO = "acceso_bloqueado";
+const CLAVE_USUARIOS = "sistema_comercial_usuarios_demo";
 
+let intentos = Number(localStorage.getItem(CLAVE_INTENTOS) || "0");
 let bloqueado =
-    localStorage.getItem(CLAVE_BLOQUEADO) === "true";
+    localStorage.getItem(CLAVE_BLOQUEADO) === "true" ||
+    intentos >= MAX_INTENTOS;
 
-let intentos = Number(
-    localStorage.getItem(CLAVE_INTENTOS) || "0"
-);
-
-// Mostrar u ocultar contraseña
 mostrarPassword.addEventListener("click", () => {
     const mostrar = password.type === "password";
 
@@ -33,13 +30,11 @@ mostrarPassword.addEventListener("click", () => {
     );
 });
 
-// Mostrar mensajes
-function mostrarMensaje(texto, tipo) {
+function mostrarMensaje(texto, tipo = "error") {
     mensaje.textContent = texto;
     mensaje.className = `mensaje ${tipo}`;
 }
 
-// Actualizar contador visual
 function actualizarIntentos() {
     const disponibles = Math.max(0, MAX_INTENTOS - intentos);
 
@@ -47,18 +42,13 @@ function actualizarIntentos() {
         barra.classList.toggle("used", indice < intentos);
     });
 
-    if (bloqueado) {
-        intentosTexto.textContent = "Acceso bloqueado";
-    } else {
-        intentosTexto.textContent =
-            `${disponibles} de ${MAX_INTENTOS} intentos disponibles`;
-    }
+    intentosTexto.textContent = bloqueado
+        ? "Acceso bloqueado"
+        : `${disponibles} de ${MAX_INTENTOS} intentos disponibles`;
 }
 
-// Bloquear el formulario
 function bloquearAcceso() {
     bloqueado = true;
-
     localStorage.setItem(CLAVE_BLOQUEADO, "true");
     localStorage.setItem(CLAVE_INTENTOS, String(MAX_INTENTOS));
 
@@ -67,8 +57,7 @@ function bloquearAcceso() {
     mostrarPassword.disabled = true;
     btnLogin.disabled = true;
 
-    btnLogin.innerHTML = "<span>Acceso bloqueado</span> <span>🔒</span>";
-
+    btnLogin.innerHTML = "<span>Acceso bloqueado</span><span>🔒</span>";
     actualizarIntentos();
 
     mostrarMensaje(
@@ -77,10 +66,8 @@ function bloquearAcceso() {
     );
 }
 
-// Registrar intento fallido
 function registrarError() {
     intentos++;
-
     localStorage.setItem(CLAVE_INTENTOS, String(intentos));
 
     if (intentos >= MAX_INTENTOS) {
@@ -90,10 +77,8 @@ function registrarError() {
 
     actualizarIntentos();
 
-    const restantes = MAX_INTENTOS - intentos;
-
     mostrarMensaje(
-        `Usuario o contraseña incorrectos. Intento ${intentos} de ${MAX_INTENTOS}. Te quedan ${restantes}.`,
+        `Usuario o contraseña incorrectos. Te quedan ${MAX_INTENTOS - intentos} intentos.`,
         "error"
     );
 
@@ -101,15 +86,48 @@ function registrarError() {
     password.focus();
 }
 
-// Comprobar si ya estaba bloqueado
-if (bloqueado || intentos >= MAX_INTENTOS) {
+function obtenerUsuarios() {
+    try {
+        const datos = JSON.parse(
+            localStorage.getItem(CLAVE_USUARIOS) || "[]"
+        );
+        return Array.isArray(datos) ? datos : [];
+    } catch {
+        return [];
+    }
+}
+
+function validarCredenciales(usuarioIngresado, passwordIngresada) {
+    // Cuenta de demostración inicial
+    if (
+        usuarioIngresado.toLowerCase() === "admin" &&
+        passwordIngresada === "123456"
+    ) {
+        return {
+            usuario: "admin",
+            nombre: "Administrador",
+            rol: "Administrador"
+        };
+    }
+
+    // Usuarios creados desde Gestión de usuarios
+    const usuariosRegistrados = obtenerUsuarios();
+
+    const encontrado = usuariosRegistrados.find(u =>
+        String(u.usuario).toLowerCase() === usuarioIngresado.toLowerCase() &&
+        u.password === passwordIngresada
+    );
+
+    return encontrado || null;
+}
+
+if (bloqueado) {
     bloquearAcceso();
 } else {
     actualizarIntentos();
 }
 
-// Validar inicio de sesión
-formulario.addEventListener("submit", function(event) {
+formulario.addEventListener("submit", event => {
     event.preventDefault();
 
     if (bloqueado) {
@@ -120,37 +138,41 @@ formulario.addEventListener("submit", function(event) {
     const usuarioIngresado = usuario.value.trim();
     const passwordIngresada = password.value;
 
-    if (!usuarioIngresado || !passwordIngresada.trim()) {
-        mostrarMensaje(
-            "Completa el usuario y la contraseña.",
-            "error"
-        );
+    if (!usuarioIngresado || !passwordIngresada) {
+        mostrarMensaje("Completa el usuario y la contraseña.", "error");
         return;
     }
 
-    // Credenciales de demostración.
-    // En producción, deben validarse en el backend Java.
-    if (
-        usuarioIngresado === "admin" &&
-        passwordIngresada === "123456"
-    ) {
-        // Restablecer los intentos tras el acceso correcto
-        localStorage.removeItem(CLAVE_INTENTOS);
-        localStorage.removeItem(CLAVE_BLOQUEADO);
+    const usuarioValidado = validarCredenciales(
+        usuarioIngresado,
+        passwordIngresada
+    );
 
-        mostrarMensaje(
-            "Inicio de sesión correcto. Redirigiendo...",
-            "success"
-        );
-
-        btnLogin.disabled = true;
-        btnLogin.innerHTML = "<span>Acceso correcto ✓</span>";
-
-        setTimeout(() => {
-            window.location.href = "panel.html";
-        }, 800);
-
-    } else {
+    if (!usuarioValidado) {
         registrarError();
+        return;
     }
+
+    // Reiniciar los intentos cuando el acceso es correcto
+    localStorage.removeItem(CLAVE_INTENTOS);
+    localStorage.removeItem(CLAVE_BLOQUEADO);
+
+    mostrarMensaje("Inicio de sesión correcto. Redirigiendo...", "success");
+
+    btnLogin.disabled = true;
+    btnLogin.innerHTML = "<span>Acceso correcto ✓</span>";
+
+    // Guardar solo información de la sesión, no la contraseña
+    sessionStorage.setItem(
+        "sesion_usuario",
+        JSON.stringify({
+            usuario: usuarioValidado.usuario,
+            nombre: usuarioValidado.nombre,
+            rol: usuarioValidado.rol
+        })
+    );
+
+    setTimeout(() => {
+        window.location.href = "panel.html";
+    }, 800);
 });
